@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import Burger from '../../components/Burger/Burger';
 import BuildControls from '../../components/Burger/BuildControls/BuildControls';
+import Modal from '../../components/UI/Modal/Modal';
+import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary';
 
 const INGREDIENT_PRICES = {
   salad: 0.5,
@@ -18,9 +20,19 @@ class BurgerBuilder extends Component {
       cheese: 0,
       meat: 0
     },
-    totalPrice: 4
+    totalPrice: 4,
+    purchaseable: false,
+    modalIsVisible: false,
   }
 
+  updatePurchaseState = (ingredients) => {
+    const sum = Object.keys(ingredients)
+      .map(item => {
+        return ingredients[item]
+      })
+      .reduce((sume, el) => { return sume + el }, 0);
+    this.setState({ purchaseable: sum > 0 });
+  }
 
   addIngredientHandler = (type) => {
     const oldCount = this.state.ingredients[type];
@@ -33,6 +45,7 @@ class BurgerBuilder extends Component {
     const oldPrice = this.state.totalPrice;
     const newPrice = oldPrice + priceAddition;
     this.setState({ totalPrice: newPrice, ingredients: updateIngredients });
+    this.updatePurchaseState(updateIngredients);
   };
 
   removeIngredientHandler = (type) => {
@@ -47,6 +60,7 @@ class BurgerBuilder extends Component {
     const oldPrice = this.state.totalPrice;
     const newPrice = oldPrice - priceDeduction;
     this.setState({ totalPrice: newPrice, ingredients: updateIngredients });
+    this.updatePurchaseState(updateIngredients);
   };
 
 
@@ -62,11 +76,14 @@ class BurgerBuilder extends Component {
 
     return (
       <>
+        {this.state.modalIsVisible ? (<Modal><OrderSummary ingredients={this.state.ingredients} /></Modal>) : null}
         <Burger ingredients={this.state.ingredients} />
         <BuildControls
           ingredientAdded={this.addIngredientHandler}
           ingredientRemove={this.removeIngredientHandler}
           disabled={disabledInfo}
+          purchaseable={this.state.purchaseable}
+          price={this.state.totalPrice}
         />
       </>
     );
